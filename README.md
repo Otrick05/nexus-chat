@@ -1,6 +1,7 @@
-template de springboot con auth por medio de jwt y authorities.
+proyecto backend tipo api rest para appWeb de mensajería instantanea 
 herramientas:
 spring security
 lombok
+mongoDB
 redis cache
 postgreSQL
