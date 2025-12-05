@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,10 +14,10 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 import com.example.nexuschat.nexuschat.service.SessionStoreService;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,9 +41,9 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
     @Override
     protected void doFilterInternal(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain
+     @NonNull   HttpServletRequest request,
+     @NonNull   HttpServletResponse response,
+     @NonNull   FilterChain filterChain
     )throws ServletException, IOException{
 
         final String authHeader = request.getHeader("Authorization"); 
@@ -56,15 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             final String jwt = authHeader.substring(7);
             System.out.println(jwt);
             String jti = jwtService.extractJti(jwt);
-
-            /*if (jti != null && tokenBlacklistRepository.existsByJti(jti)) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("Token en blacklist");
-            
-                return; 
-            }*/
-
-            final String username=jwtService.extractUsername(jwt);
+            final String username=jwtService.extractEmail(jwt);
             String ultimoJti = sessionService.obtener(username);
             if (ultimoJti == null || !ultimoJti.equals(jti)) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -79,7 +72,7 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
 
-                    if (ultimoJti != null && ultimoJti.equals(jti)) {
+                    if (ultimoJti.equals(jti)) {
 
                         String rol = jwtService.extractRol(jwt);
 
@@ -119,6 +112,11 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             response.getWriter().write("Token expirado");
             return;
             
+        }catch (JwtException | IllegalArgumentException ex) {
+            // catch other parsing / validation problems
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido: " + ex.getMessage());
+            return;
         }
         filterChain.doFilter(request, response);
         }

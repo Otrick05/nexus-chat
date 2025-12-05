@@ -22,7 +22,7 @@ import com.example.nexuschat.nexuschat.service.PermisoService;
 @RequestMapping("/api/permisos")
 public class PermisoController {
 
-    private PermisoService permisoService;
+    private final PermisoService permisoService;
 
     public PermisoController(PermisoService permisoService){
 

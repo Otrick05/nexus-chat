@@ -1,4 +1,5 @@
 package com.example.nexuschat.nexuschat.model;
+
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,64 +16,68 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.Data;
 
 @Entity
 @Table(name = "usuario")
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Getter
+@Data
 public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = true, unique = false)
+    @Column(nullable = false, unique = true)
     private String nombreUsuario;
 
     @Column(nullable = false, unique = true)
     private String correo;
 
     @Column(nullable = false)
-    private String password;  
+    private String password;
+
+    private String nombreAppUsuario;
+
     private boolean accountNonLocked = true;
     private boolean accountNonExpired = true;
     private boolean credentialsNonExpired = true;
     private boolean enabled = true;
-    private Integer failedLoginAttempts=0;
+    private Integer failedLoginAttempts = 0;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
     private Instant lastLogin = Instant.now();;
+    private String avatarUrl;
 
-    
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
-    // A partir de aquí se implementan los métodos de UserDetails que se requieren para spring security
+    @ManyToMany
+    @JoinTable(name = "usuario_contacto", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "contacto_id"))
+    private Set<Usuario> contactos;
+
+    // A partir de aquí se implementan los métodos de UserDetails que se requieren
+    // para spring security
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();
-        rol.getPermisos().forEach(permiso ->
-            authorities.add(new SimpleGrantedAuthority(permiso.getNombre()))
-        );
+        rol.getPermisos().forEach(permiso -> authorities.add(new SimpleGrantedAuthority(permiso.getNombre())));
 
         return authorities;
     }
-    
+
     @Override
     public String getUsername() {
-        return correo; /*La discrepancia de esta linea surge por que UserDetails requiere el getUsername 
-                        pero la app se requiere desarrollar con auth por correo */ 
+        return correo; /*
+                        * La discrepancia de esta linea surge por que UserDetails requiere el
+                        * getUsername
+                        * pero la app se requiere desarrollar con auth por correo
+                        */
     }
 
     @Override

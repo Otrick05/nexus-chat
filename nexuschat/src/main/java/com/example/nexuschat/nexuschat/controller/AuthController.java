@@ -1,70 +1,69 @@
 package com.example.nexuschat.nexuschat.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.nexuschat.nexuschat.DTO.LoginRequest;
-import com.example.nexuschat.nexuschat.DTO.SignupRequest;
-import com.example.nexuschat.nexuschat.security.AuthService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.nexuschat.nexuschat.DTO.LoginRequest;
+import com.example.nexuschat.nexuschat.DTO.SignupRequest;
+import com.example.nexuschat.nexuschat.security.AuthService;
 import com.example.nexuschat.nexuschat.service.SessionStoreService;
-import com.example.nexuschat.nexuschat.service.TokenBlacklistService;
-
-
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("api/auth")
 public class AuthController {
 
-    
-    private AuthService authService;
-    private TokenBlacklistService tokenBlacklistService;
-    private SessionStoreService sessionStoreService;
+    private final AuthService authService;
+    private final SessionStoreService sessionStoreService;
 
-    public AuthController(AuthService authService, TokenBlacklistService tokenBlacklistService, SessionStoreService sessionStoreService){
+    public AuthController(AuthService authService, SessionStoreService sessionStoreService) {
         this.authService = authService;
-        this.tokenBlacklistService = tokenBlacklistService;
         this.sessionStoreService = sessionStoreService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
 
+        System.out.println(loginRequest.getCorreo());
+        System.out.println(loginRequest.getPassword());
         String token = authService
-            .authenticateAndGenerateToken(
-                loginRequest.getCorreo(),
-                loginRequest.getPassword()
-            );
+                .authenticateAndGenerateToken(
+                        loginRequest.getCorreo(),
+                        loginRequest.getPassword());
 
-        return ResponseEntity.ok(token);
+        System.out.println(token);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/signup")
-    public ResponseEntity <String> registrarUsuario (@RequestBody SignupRequest SignupRequest) {
+    public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody SignupRequest SignupRequest) {
         String jwt = authService.registerAndAuthenticateUser(SignupRequest);
-    
-        return new ResponseEntity<String>(jwt, HttpStatus.CREATED);
+        System.out.println(jwt);
+        Map<String, String> response = new HashMap<>();
+        response.put("token", jwt);
+        return ResponseEntity.ok(response);
     }
-    
-
 
     @PostMapping("/logout")
-    public ResponseEntity <String> logout(@RequestHeader("Authorization") String authHeader ) {
-       
-        if (authHeader!=null && authHeader.startsWith("Bearer ")) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             sessionStoreService.invalidar(token);
 
             return ResponseEntity.ok("Logeo exitoso, token invalidado");
-            
+
         }
-        return ResponseEntity.badRequest().body("Token invalido") ;
+        return ResponseEntity.badRequest().body("Token invalido");
     }
-    
 
 }

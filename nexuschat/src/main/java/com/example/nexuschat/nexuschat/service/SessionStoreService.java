@@ -39,7 +39,7 @@ public class SessionStoreService {
     public void invalidar (String token){
        
         try {
-            String subject = jwtService.extractUsername(token);
+            String subject = jwtService.extractEmail(token);
             redis.delete(KEY_PREFIX+subject);
         }catch (ExpiredJwtException ex) {
    

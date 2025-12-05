@@ -11,13 +11,18 @@ import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.example.nexuschat.nexuschat.model.Usuario;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -66,7 +71,7 @@ public class JwtService {
             .compact();
     }
 
-    public String extractUsername(String token){
+    public String extractEmail(String token){
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -77,22 +82,31 @@ public class JwtService {
     public <T> T extractClaim(String token, Function <Claims, T> claimsResolver){
 
         final Claims claims = extractAllClaims(token);
+        if (claims == null) {
+            throw new IllegalArgumentException("Invalid JWT token: claims are null");
+        }
         return claimsResolver.apply(claims);
+        
     }
 
     private Claims extractAllClaims(String token) {
         
-        return Jwts
-            .parserBuilder()
-            .setSigningKey(getSigningKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
+        try {
+            return Jwts
+                .parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        } catch (JwtException | IllegalArgumentException ex) {
+            
+            throw new IllegalArgumentException("Invalid JWT token: " + ex.getMessage(), ex);
+        }
     }
 
     public Boolean isTokenValid(String token, UserDetails userDetails){
         
-        final String username = extractUsername(token);
+        final String username = extractEmail(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
@@ -118,5 +132,19 @@ public class JwtService {
 
     public List<String> extractPermissions(String token) {
         return extractClaim(token, claims -> claims.get("permissions", List.class));
+    }
+
+    public Authentication getAuthentication(String token, UserDetails userDetails) {
+        if (isTokenValid(token, userDetails)) {
+            String username = extractEmail(token);
+            List<String> permissions = extractPermissions(token);
+            List<SimpleGrantedAuthority> authorities = permissions.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+            return new UsernamePasswordAuthenticationToken(username, null, authorities);
+        }else{
+            return null;
+        }
+
     }
 }
