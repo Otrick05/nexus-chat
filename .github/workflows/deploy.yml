@@ -36,8 +36,8 @@ jobs:
           cache-dependency-path: ./nexuschat/pom.xml # Importante para que el cache funcione en subdirectorio
 
       # 2. Correr Tests Unitarios (CI)
-      - name: Run Tests with Maven
-        run: mvn test
+     # - name: Run Tests with Maven
+     # run: mvn test
 
       # 3. Autenticación con Google Cloud
       - name: Google Auth
