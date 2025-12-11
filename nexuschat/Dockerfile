@@ -1,13 +1,4 @@
 
-# -------------------------------------------------------------
-# Dockerfile Optimizado para CI/CD
-# -------------------------------------------------------------
-# Nota: No usamos "FROM maven" aquí porque el JAR ya fue construido
-# por GitHub Actions en el paso previo (mvn package). Esto permite:
-# 1. Usar el cache de dependencias de GitHub Actions (más rápido).
-# 2. Evitar recompilar el proyecto dos veces.
-# -------------------------------------------------------------
-
 FROM eclipse-temurin:21-jdk-alpine
 
 # Volume para archivos temporales de Tomcat
