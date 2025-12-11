@@ -49,7 +49,11 @@ public class Usuario implements UserDetails {
     private Integer failedLoginAttempts = 0;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
-    private Instant lastLogin = Instant.now();;
+    private Instant lastLogin = Instant.now();
+
+    @Column(name = "jti")
+    private String jti;
+
     private String avatarUrl;
 
     @ManyToOne(fetch = FetchType.EAGER)

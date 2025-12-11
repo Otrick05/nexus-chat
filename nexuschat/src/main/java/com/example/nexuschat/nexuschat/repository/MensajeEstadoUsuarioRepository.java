@@ -4,13 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.nexuschat.nexuschat.model.Mensaje;
 import com.example.nexuschat.nexuschat.model.MensajeEstadoUsuario;
-import com.example.nexuschat.nexuschat.model.ParticipanteChat;
+
+import com.example.nexuschat.nexuschat.model.Usuario;
 
 public interface MensajeEstadoUsuarioRepository extends JpaRepository<MensajeEstadoUsuario, Long> {
 
     boolean existsByMensajeAndParticipanteAndEstado(
             Mensaje mensaje,
-            ParticipanteChat participante,
-            MensajeEstadoUsuario.EstadoVisibilidad estado
-    );
+            Usuario participante,
+            MensajeEstadoUsuario.EstadoVisibilidad estado);
 }

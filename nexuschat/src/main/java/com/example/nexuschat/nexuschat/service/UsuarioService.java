@@ -25,4 +25,50 @@ public class UsuarioService {
 
         return usuarioRepository.findByCorreo(correo);
     }
+
+    public void registrarSesion(String correo, String jti) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setJti(jti);
+        usuario.setLastLogin(java.time.Instant.now());
+        usuarioRepository.save(usuario);
+    }
+
+    public boolean validarSesion(String correo, String jtiActual) {
+        return usuarioRepository.findByCorreo(correo)
+                .map(usuario -> {
+                    // Si no hay JTI guardado o no coincide, es inválido
+                    if (usuario.getJti() == null || !usuario.getJti().equals(jtiActual)) {
+                        return false;
+                    }
+
+                    // Validar TTL de 15 minutos (por ejemplo)
+                    java.time.Instant now = java.time.Instant.now();
+                    java.time.Instant expirationTime = usuario.getLastLogin().plusSeconds(15 * 60); // 15 min TTL logic
+                                                                                                    // if desired
+
+                    // Si el usuario dijo que el token tiene TTL de 15 min y queremos validar que la
+                    // sesión
+                    // siga "viva" respecto al lastLogin...
+                    // Pero la solicitud dice: "usar last login para checar ttl que es de 15
+                    // minutos"
+
+                    if (now.isAfter(expirationTime)) {
+                        return false; // Sesión expirada por tiempo
+                        // (aunque el token JWT tenga su propia expiración, aqui validamos base de
+                        // datos)
+                    }
+
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    public void invalidarSesion(String correo) {
+        usuarioRepository.findByCorreo(correo).ifPresent(usuario -> {
+            usuario.setJti(null);
+            usuarioRepository.save(usuario);
+        });
+    }
 }

@@ -14,29 +14,29 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
-@Table(name="mensaje_estado_usuario")
+@Table(name = "mensaje_estado_usuario")
 @Entity
 public class MensajeEstadoUsuario {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @OneToOne(fetch = FetchType.LAZY) 
-    @JoinColumn(name = "id_mensaje")
-    private Mensaje id_mensaje;
 
-    @OneToOne(fetch = FetchType.LAZY) 
-    @JoinColumn(name = "id_participante")
-    private Usuario id_participante;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_mensaje")
+    private Mensaje mensaje;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario")
+    private Usuario participante;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoVisibilidad estado;
+
     public enum EstadoVisibilidad {
-        LEIDO,      
-        BORRADO     
+        LEIDO,
+        BORRADO
     }
 
 }

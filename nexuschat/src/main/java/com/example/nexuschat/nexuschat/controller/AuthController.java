@@ -13,18 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.nexuschat.nexuschat.DTO.LoginRequest;
 import com.example.nexuschat.nexuschat.DTO.SignupRequest;
 import com.example.nexuschat.nexuschat.security.AuthService;
-import com.example.nexuschat.nexuschat.service.SessionStoreService;
 
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
 
     private final AuthService authService;
-    private final SessionStoreService sessionStoreService;
 
-    public AuthController(AuthService authService, SessionStoreService sessionStoreService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.sessionStoreService = sessionStoreService;
     }
 
     @PostMapping("/login")
@@ -58,7 +55,7 @@ public class AuthController {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            sessionStoreService.invalidar(token);
+            authService.logout(token);
 
             return ResponseEntity.ok("Logeo exitoso, token invalidado");
 

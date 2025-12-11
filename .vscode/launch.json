@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "NexusChatApplication",
+            "request": "launch",
+            "mainClass": "com.example.nexuschat.nexuschat.NexusChatApplication",
+            "projectName": "nexuschat"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-CadenasuministrosApplication<cadenasuministros>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

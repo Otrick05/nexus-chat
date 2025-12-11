@@ -1,17 +1,16 @@
 package com.example.nexuschat.nexuschat.service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.nexuschat.nexuschat.DTO.request.ActualizarChatRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.request.ChatMessageDTO;
 import com.example.nexuschat.nexuschat.DTO.request.CreateChatRequestDTO;
+import com.example.nexuschat.nexuschat.DTO.request.EnviarMensajeRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.request.EnviarMensajeRequestDTO.ArchivoSolicitudDTO;
 import com.example.nexuschat.nexuschat.DTO.response.ChatListResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseDTO;
@@ -29,10 +28,8 @@ import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 
 @Service
-
 public class ChatGeneralService {
 
     private final ChatRepository chatRepository;
@@ -43,9 +40,12 @@ public class ChatGeneralService {
     private final MultimediaRepository multimediaRepository;
     private final StorageService storageService;
 
-    public ChatGeneralService(ChatRepository chatRepository, UsuarioRepository usuarioRepository,
-            ParticipanteChatRepository participanteChatRepository, MensajeRepository mensajeRepository,
-            RealtimeChatService realtimeChatService, MultimediaRepository multimediaRepository,
+    public ChatGeneralService(ChatRepository chatRepository,
+            UsuarioRepository usuarioRepository,
+            ParticipanteChatRepository participanteChatRepository,
+            MensajeRepository mensajeRepository,
+            RealtimeChatService realtimeChatService,
+            MultimediaRepository multimediaRepository,
             StorageService storageService) {
         this.chatRepository = chatRepository;
         this.usuarioRepository = usuarioRepository;
@@ -189,8 +189,8 @@ public class ChatGeneralService {
     }
 
     @Transactional
-    public MensajeResponseDTO procesarYDifundirMensaje(ChatMessageDTO dto, String emailRemitente) {
-        Usuario remitente = buscarUsuarioPorCorreo(emailRemitente);
+    public MensajeResponseDTO procesarYDifundirMensaje(EnviarMensajeRequestDTO dto, String correoRemitente) {
+        Usuario remitente = buscarUsuarioPorCorreo(correoRemitente);
         Chat chat = buscarChatPorId(dto.getChatId());
 
         // 1. Validación de permisos
@@ -436,7 +436,7 @@ public class ChatGeneralService {
 
     private void gestionarTransferenciaPropiedadAutomatica(Chat chat) {
         // 1. Buscar al Admin más antiguo (que sigue activo)
-        participanteChatRepository.findFirstByChatAndTipoUsuarioAndSalidaIsNullOrderByIngresoAsc(
+        participanteChatRepository.findFirstByChatAndTipoAndSalidaIsNullOrderByIngresoAsc(
                 chat, ParticipanteChat.TipoUsuario.ADMIN_GRUPO)
                 .ifPresentOrElse(
                         // 2. Si se encuentra, ascenderlo a PROPIETARIO
@@ -445,7 +445,7 @@ public class ChatGeneralService {
                             participanteChatRepository.save(adminMasAntiguo);
                         },
                         // 3. Si no hay Admins, buscar al Miembro más antiguo (que sigue activo)
-                        () -> participanteChatRepository.findFirstByChatAndTipoUsuarioAndSalidaIsNullOrderByIngresoAsc(
+                        () -> participanteChatRepository.findFirstByChatAndTipoAndSalidaIsNullOrderByIngresoAsc(
                                 chat, ParticipanteChat.TipoUsuario.MIEMBRO)
                                 .ifPresent(miembroMasAntiguo -> {
                                     miembroMasAntiguo.setTipo(ParticipanteChat.TipoUsuario.PROPIETARIO);
@@ -509,7 +509,7 @@ public class ChatGeneralService {
         // Lógica para chats individuales: mostrar el nombre y foto del *otro* usuario
         if (chat.getTipo() == Chat.TipoChat.PRIVADO) {
             ParticipanteChat otroParticipante = participanteChatRepository
-                    .findByChatAndUsuarioNotAndSalidaIsNull(chat, usuarioActual)
+                    .findByChatAndTipoNotAndSalidaIsNull(chat, usuarioActual)
                     .orElse(null); // Puede ser nulo si el otro se fue
 
             if (otroParticipante != null) {

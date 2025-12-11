@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.nexuschat.nexuschat.service.SessionStoreService;
+import com.example.nexuschat.nexuschat.service.UsuarioService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -24,101 +24,88 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter{
+public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    
     private final UserDetailsService userDetailsService;
-    private final SessionStoreService sessionService;
+    private final UsuarioService usuarioService;
 
-
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService, SessionStoreService sessionService){
+    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService, UsuarioService usuarioService) {
         this.jwtService = jwtService;
-        
         this.userDetailsService = userDetailsService;
-        this.sessionService = sessionService;
+        this.usuarioService = usuarioService;
     }
 
     @Override
     protected void doFilterInternal(
-     @NonNull   HttpServletRequest request,
-     @NonNull   HttpServletResponse response,
-     @NonNull   FilterChain filterChain
-    )throws ServletException, IOException{
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization"); 
+        final String authHeader = request.getHeader("Authorization");
         System.out.println(authHeader);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")){
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        try{
+        try {
             final String jwt = authHeader.substring(7);
             System.out.println(jwt);
             String jti = jwtService.extractJti(jwt);
-            final String username=jwtService.extractEmail(jwt);
-            String ultimoJti = sessionService.obtener(username);
-            if (ultimoJti == null || !ultimoJti.equals(jti)) {
+            final String username = jwtService.extractEmail(jwt);
+
+            if (!usuarioService.validarSesion(username, jti)) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("Token inválido: hay un login más reciente");
+                response.getWriter().write("Token inválido: sesión expirada o hay un login más reciente");
                 return;
             }
-        
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-    
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
 
-                    if (ultimoJti.equals(jti)) {
+                    String rol = jwtService.extractRol(jwt);
 
-                        String rol = jwtService.extractRol(jwt);
+                    List<String> permisos = jwtService.extractPermissions(jwt);
 
-                        
-                        List<String> permisos = jwtService.extractPermissions(jwt);
+                    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-                        
-                        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                    if (rol != null) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + rol));
+                    }
 
-                        if (rol != null) {
-                            authorities.add(new SimpleGrantedAuthority("ROLE_" + rol));
-                        }
+                    if (permisos != null) {
+                        authorities.addAll(
+                                permisos.stream()
+                                        .map(SimpleGrantedAuthority::new)
+                                        .toList());
+                    }
 
-                        if (permisos != null) {
-                            authorities.addAll(
-                            permisos.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .toList()
-                            );
-                        }
-           
-                        UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            authorities
-                        );
+                            authorities);
 
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
-                }    
-            }                       
-                    
-        }catch(ExpiredJwtException ex) {
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+
+        } catch (ExpiredJwtException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token expirado");
             return;
-            
-        }catch (JwtException | IllegalArgumentException ex) {
+
+        } catch (JwtException | IllegalArgumentException ex) {
             // catch other parsing / validation problems
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token inválido: " + ex.getMessage());
             return;
         }
         filterChain.doFilter(request, response);
-        }
+    }
 
 }

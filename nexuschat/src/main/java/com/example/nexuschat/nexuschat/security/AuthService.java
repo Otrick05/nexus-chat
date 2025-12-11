@@ -1,6 +1,5 @@
 package com.example.nexuschat.nexuschat.security;
 
-import java.time.Duration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -8,12 +7,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import com.example.nexuschat.nexuschat.DTO.SignupRequest;
 import com.example.nexuschat.nexuschat.exception.CorreoYaExisteException;
 import com.example.nexuschat.nexuschat.model.Usuario;
 import com.example.nexuschat.nexuschat.repository.RolRepository;
 import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
-import com.example.nexuschat.nexuschat.service.SessionStoreService;
+import com.example.nexuschat.nexuschat.service.UsuarioService;
 
 @Service
 public class AuthService {
@@ -23,37 +23,35 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final RolRepository rolRepository;
-    private final SessionStoreService sessionService;
+    private final UsuarioService usuarioService;
 
-
-
-    public AuthService(AuthenticationManager authenticationManager, JwtService jwtService, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, RolRepository rolRepository, SessionStoreService sessionService){
+    public AuthService(AuthenticationManager authenticationManager, JwtService jwtService,
+            UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, RolRepository rolRepository,
+            UsuarioService usuarioService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.rolRepository = rolRepository;
-        this.sessionService = sessionService;
+        this.usuarioService = usuarioService;
     }
 
-
-    public String authenticateAndGenerateToken(String username, String password){
+    public String authenticateAndGenerateToken(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(username, password)
-        );
+                new UsernamePasswordAuthenticationToken(username, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
-        
+
         String subject = userDetails.getUsername();
         String jti = jwtService.extractJti(token);
-        Duration ttl= jwtService.timeToExpiry(token); 
-        sessionService.registrar(subject, jti, ttl);
+
+        usuarioService.registrarSesion(subject, jti);
 
         return token;
     }
 
-    public String registerAndAuthenticateUser(SignupRequest signupRequest){
+    public String registerAndAuthenticateUser(SignupRequest signupRequest) {
 
         if (usuarioRepository.findByCorreo(signupRequest.getCorreo()).isPresent()) {
             throw new CorreoYaExisteException("El Correo ya está en uso");
@@ -65,15 +63,18 @@ public class AuthService {
         nuevoUsuario.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
         rolRepository.findByNombre("USUARIO")
-        .ifPresent(nuevoUsuario::setRol);
-        
+                .ifPresent(nuevoUsuario::setRol);
+
         usuarioRepository.save(nuevoUsuario);
 
         return authenticateAndGenerateToken(
-            nuevoUsuario.getCorreo(),
-            signupRequest.getPassword()
-        );
+                nuevoUsuario.getCorreo(),
+                signupRequest.getPassword());
     }
 
+    public void logout(String token) {
+        String email = jwtService.extractEmail(token);
+        usuarioService.invalidarSesion(email);
+    }
 
 }

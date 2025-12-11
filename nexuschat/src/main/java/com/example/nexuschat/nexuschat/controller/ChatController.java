@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 
 import com.example.nexuschat.nexuschat.DTO.request.ActualizarChatRequestDTO;
-import com.example.nexuschat.nexuschat.DTO.request.ChatMessageDTO;
 import com.example.nexuschat.nexuschat.DTO.request.CreateChatRequestDTO;
+import com.example.nexuschat.nexuschat.DTO.request.EnviarMensajeRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.response.ChatListResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseDTO;
 import com.example.nexuschat.nexuschat.service.ChatGeneralService;
@@ -107,16 +107,14 @@ public class ChatController {
     @PostMapping("/{idChat}/mensajes")
     public ResponseEntity<MensajeResponseDTO> enviarMensaje(
             @PathVariable Long idChat,
-            @Valid @RequestBody ChatMessageDTO request,
+            @Valid @RequestBody EnviarMensajeRequestDTO request,
             Principal principal) {
 
         request.setChatId(idChat);
 
-        /*
-         * MensajeResponseDTO mensajeEnviado = chatGeneralService
-         * .procesarYDifundirMensaje(request, principal.getName());
-         */
-        return new ResponseEntity<>(/* mensajeEnviado, */ HttpStatus.CREATED);
+        MensajeResponseDTO mensajeEnviado = chatGeneralService
+                .procesarYDifundirMensaje(request, principal.getName());
+        return new ResponseEntity<>(mensajeEnviado, HttpStatus.CREATED);
     }
 
     @GetMapping("/{idChat}/mensajes")
