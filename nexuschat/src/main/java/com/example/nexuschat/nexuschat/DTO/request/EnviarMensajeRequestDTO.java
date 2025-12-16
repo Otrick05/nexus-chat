@@ -16,6 +16,8 @@ public class EnviarMensajeRequestDTO {
 
     private String contenido;
 
+    private String correoRemitente;
+
     @NotNull(message = "El tipo de mensaje debe estar definido")
     private Mensaje.TipoMensaje tipoMensaje;
 
@@ -27,6 +29,6 @@ public class EnviarMensajeRequestDTO {
         private String nombreArchivo;
         private String contentType;
         private Long tamanoBytes;
-        private String duracion; // Opcional, para audio/video
+        private String duracion;
     }
 }

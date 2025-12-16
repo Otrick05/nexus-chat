@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,6 +20,19 @@ public class ChatListResponseDTO {
     private String urlAvatar;
     private MensajeResumenDTO ultimoMensaje;
     private int conteoNoLeidos;
+    private List<ParticipanteDTO> participantes;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ParticipanteDTO {
+        private Long idUsuario;
+        private String correo; // o email
+        private String nombreUsuario; // nickname
+        private String avatarUrl;
+        private String rol; // PROPIETARIO, ADMIN, MIEMBRO
+    }
 
     // DTO anidado para el resumen del mensaje (solo usado aquí)
     @Data
@@ -27,6 +41,7 @@ public class ChatListResponseDTO {
     @AllArgsConstructor
     public static class MensajeResumenDTO {
         private String contenido;
+        private String nombreRemitente;
         private String remitenteCorreo;
         private Instant hora;
         private Boolean borradoParaTodos;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 @RestController
 @RequestMapping("/api/contactos")
+@PreAuthorize("hasRole('ROLE_USUARIO')")
 public class ContactoController {
 
     private final ContactoService contactoService;
@@ -29,6 +31,7 @@ public class ContactoController {
 
     @GetMapping
     public ResponseEntity<List<PerfilUsuarioDTO>> getAllContactos(Principal principal) {
+        System.out.println("Principal: " + principal.getName());
         List<PerfilUsuarioDTO> contactos = contactoService.obtenerContactosDeUsuario(principal.getName());
         return new ResponseEntity<>(contactos, HttpStatus.OK);
     }
@@ -39,4 +42,5 @@ public class ContactoController {
         PerfilUsuarioDTO contactoCreado = contactoService.agregarContacto(correo, principal.getName());
         return new ResponseEntity<>(contactoCreado, HttpStatus.ACCEPTED);
     }
+
 }

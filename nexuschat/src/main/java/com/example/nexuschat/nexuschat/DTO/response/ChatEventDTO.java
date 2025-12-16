@@ -13,12 +13,14 @@ public class ChatEventDTO {
     private Object payload; // Map o DTO específico según el evento
 
     public enum EventType {
-        
-        MESSAGE_READ,     // Payload: { messageId, emailLector }
-        USER_JOINED,      // Payload: { emailUsuario }
-        USER_LEFT,        // Payload: { emailUsuario }
-        OWNER_CHANGED,    // Payload: { emailNuevoPropietario, emailAntiguoPropietario }
-        CHAT_UPDATED,     // Payload: ChatListResponseDTO
-        TYPING            // Payload: { emailRemitente, isTyping }
+
+        MESSAGE_READ, // Payload: { messageId, emailLector }
+        USER_JOINED, // Payload: { emailUsuario }
+        USER_LEFT, // Payload: { emailUsuario }
+        OWNER_CHANGED, // Payload: { emailNuevoPropietario, emailAntiguoPropietario }
+        CHAT_UPDATED, // Payload: ChatListResponseDTO
+        NEW_CHAT, // Payload: ChatListResponseDTO
+        TYPING, // Payload: { emailRemitente, isTyping }
+        NEW_MESSAGE_NOTIFICATION // Payload: MensajeResponseWBDTO
     }
 }

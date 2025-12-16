@@ -15,22 +15,27 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.SortDefault;
 
 import com.example.nexuschat.nexuschat.DTO.request.ActualizarChatRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.request.CreateChatRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.request.EnviarMensajeRequestDTO;
 import com.example.nexuschat.nexuschat.DTO.response.ChatListResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseDTO;
+import com.example.nexuschat.nexuschat.DTO.response.PerfilUsuarioDTO;
 import com.example.nexuschat.nexuschat.service.ChatGeneralService;
-
+import com.example.nexuschat.nexuschat.model.Chat.TipoChat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
-@PreAuthorize("hasRole='USER'")
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/chats")
 @Validated
+@PreAuthorize("hasRole('ROLE_USUARIO')")
 public class ChatController {
 
     private final ChatGeneralService chatGeneralService;
@@ -39,13 +44,29 @@ public class ChatController {
         this.chatGeneralService = chatGeneralService;
     }
 
-    @PostMapping
-    public ResponseEntity<ChatListResponseDTO> crearChat(
+    @PostMapping("/newchat")
+    public ResponseEntity<ChatListResponseDTO> crearchat(
             @Valid @RequestBody CreateChatRequestDTO request, Principal principal) {
 
+        if (request.getTipo() != TipoChat.PRIVADO) {
+            throw new IllegalArgumentException("El tipo de chat debe ser PRIVADO.");
+        }
         ChatListResponseDTO chatCreado = chatGeneralService.crearChat(
                 request, principal.getName());
-        return new ResponseEntity<>(chatCreado, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(chatCreado, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/grupo")
+    public ResponseEntity<ChatListResponseDTO> crearGrupo(
+            @Valid @RequestBody CreateChatRequestDTO request, Principal principal) {
+
+        if (request.getTipo() != TipoChat.GRUPO) {
+            throw new IllegalArgumentException("El tipo de chat debe ser GRUPO.");
+        }
+
+        ChatListResponseDTO chatCreado = chatGeneralService.crearGrupo(
+                request, principal.getName());
+        return new ResponseEntity<>(chatCreado, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -56,7 +77,7 @@ public class ChatController {
         return new ResponseEntity<>(chats, HttpStatus.OK);
     }
 
-    @PutMapping("/{idChat}")
+    @PutMapping("(/grupo/{idChat}")
     public ResponseEntity<ChatListResponseDTO> updateChatDetails(
             @PathVariable Long idChat,
             @Valid @RequestBody ActualizarChatRequestDTO request,
@@ -67,7 +88,7 @@ public class ChatController {
         return ResponseEntity.ok(chatActualizado);
     }
 
-    @PostMapping("/{idChat}/participantes/{correo}")
+    @PostMapping("/grupo/{idChat}/participantes/{correo}")
     public ResponseEntity<Void> agregarParticipante(
             @PathVariable Long idChat,
             @PathVariable @NotEmpty @Email String correo,
@@ -78,7 +99,7 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{idChat}/participantes/{idUsuarioAExpulsar}")
+    @DeleteMapping("/grupo/{idChat}/participantes/{idUsuarioAExpulsar}")
     public ResponseEntity<Void> expulsarParticipante(
             @PathVariable Long idChat,
             @PathVariable Long idUsuarioAExpulsar,
@@ -88,13 +109,13 @@ public class ChatController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping("/{idChat}/participants/me/leave")
+    @DeleteMapping("/grupo/{idChat}/participantes/me/leave")
     public ResponseEntity<Void> salirDeChat(@PathVariable Long idChat, Principal principal) {
         chatGeneralService.salirDeChat(idChat, principal.getName());
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{idChat}/owner/{correo}")
+    @PutMapping("/grupo/{idChat}/owner/{correo}")
     public ResponseEntity<Void> transferirPropiedad(
             @PathVariable Long idChat,
             @PathVariable @NotEmpty @Email String correo,
@@ -118,13 +139,23 @@ public class ChatController {
     }
 
     @GetMapping("/{idChat}/mensajes")
-    public ResponseEntity<List<MensajeResponseDTO>> obtenerMensajes(
+    public ResponseEntity<Page<MensajeResponseDTO>> obtenerMensajes(
+            @PathVariable Long idChat,
+            @SortDefault(sort = "hora", direction = Direction.DESC) Pageable pageable,
+            Principal principal) {
+
+        Page<MensajeResponseDTO> mensajes = chatGeneralService
+                .obtenerMensajesDeChat(idChat, principal.getName(), pageable);
+        return ResponseEntity.ok(mensajes);
+    }
+
+    @GetMapping("/grupo/{idChat}/participantes")
+    public ResponseEntity<List<PerfilUsuarioDTO>> obtenerParticipantes(
             @PathVariable Long idChat,
             Principal principal) {
 
-        List<MensajeResponseDTO> mensajes = chatGeneralService
-                .obtenerMensajesDeChat(idChat, principal.getName());
-        return ResponseEntity.ok(mensajes);
+        List<PerfilUsuarioDTO> participantes = chatGeneralService.obtenerParticipantesChat(idChat, principal.getName());
+        return ResponseEntity.ok(participantes);
     }
 
 }

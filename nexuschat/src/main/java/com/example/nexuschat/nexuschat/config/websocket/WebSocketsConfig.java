@@ -12,29 +12,25 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
-public class WebSocketsConfig implements WebSocketMessageBrokerConfigurer{
+public class WebSocketsConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
 
-   
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-chat")
-        .setAllowedOriginPatterns("*")
-        .withSockJS();
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
-    
- 
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic",
-                                                            "/user");
+        registry.enableSimpleBroker("/topic", "/user");
     }
 
-     @Override
+    @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Añadimos nuestro interceptor al canal de entrada del cliente
         registration.interceptors(jwtInterceptor);
     }
 }

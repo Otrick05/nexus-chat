@@ -15,6 +15,8 @@ import com.example.nexuschat.nexuschat.repository.RolRepository;
 import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
 import com.example.nexuschat.nexuschat.service.UsuarioService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AuthService {
 
@@ -51,6 +53,7 @@ public class AuthService {
         return token;
     }
 
+    @Transactional
     public String registerAndAuthenticateUser(SignupRequest signupRequest) {
 
         if (usuarioRepository.findByCorreo(signupRequest.getCorreo()).isPresent()) {
@@ -59,6 +62,7 @@ public class AuthService {
 
         Usuario nuevoUsuario = new Usuario();
         nuevoUsuario.setNombreUsuario(signupRequest.getNombreUsuario());
+        nuevoUsuario.setNombreAppUsuario(signupRequest.getNombreUsuario());
         nuevoUsuario.setCorreo(signupRequest.getCorreo());
         nuevoUsuario.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 

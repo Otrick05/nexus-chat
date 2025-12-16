@@ -17,9 +17,13 @@ public interface ParticipanteChatRepository extends JpaRepository<ParticipanteCh
 
     Optional<ParticipanteChat> findByChatAndUsuarioAndSalidaIsNull(Chat chat, Usuario usuario);
 
+    Optional<ParticipanteChat> findByChatAndUsuario(Chat chat, Usuario usuario);
+
     Optional<ParticipanteChat> findFirstByChatAndTipoAndSalidaIsNullOrderByIngresoAsc(
             Chat chat, ParticipanteChat.TipoUsuario tipoUsuario);
 
-    Optional<ParticipanteChat> findByChatAndTipoNotAndSalidaIsNull(Chat chat, Usuario usuario);
+    Optional<ParticipanteChat> findByChatAndUsuarioNotAndSalidaIsNull(Chat chat, Usuario usuario);
+
+    List<ParticipanteChat> findByChatAndSalidaIsNull(Chat chat);
 
 }

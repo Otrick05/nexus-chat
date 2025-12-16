@@ -36,7 +36,8 @@ public class ParticipanteChat {
     public enum TipoUsuario {
         MIEMBRO,
         ADMIN_GRUPO,
-        PROPIETARIO
+        PROPIETARIO,
+        ELIMINADO
     }
 
     @Column(name = "ingreso", nullable = false)
@@ -44,5 +45,8 @@ public class ParticipanteChat {
 
     @Column(name = "salida", nullable = true)
     private Instant salida;
+
+    @Column(name = "fecha_eliminacion", nullable = true)
+    private Instant fechaEliminacion;
 
 }

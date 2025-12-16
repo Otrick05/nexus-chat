@@ -21,6 +21,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "usuario")
@@ -62,6 +64,8 @@ public class Usuario implements UserDetails {
 
     @ManyToMany
     @JoinTable(name = "usuario_contacto", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "contacto_id"))
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Usuario> contactos;
 
     // A partir de aquí se implementan los métodos de UserDetails que se requieren

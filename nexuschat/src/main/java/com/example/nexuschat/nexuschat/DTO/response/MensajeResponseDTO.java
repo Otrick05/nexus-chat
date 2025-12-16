@@ -1,5 +1,6 @@
 package com.example.nexuschat.nexuschat.DTO.response;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,10 +18,9 @@ public class MensajeResponseDTO {
     private Long id;
     private Long chatId;
     private String contenido;
-    private LocalDateTime hora;
+    private Instant hora;
     private Boolean borradoParaTodos;
     private String tipoMensaje; // TEXTO o MULTIMEDIA
-
     private RemitenteDTO remitente;
     private List<MultimediaResponseDTO> multimedia;
 
@@ -28,7 +28,7 @@ public class MensajeResponseDTO {
     @NoArgsConstructor
     public static class RemitenteDTO {
         private Long id;
-        private String correo4;
+        private String correo;
         private String nombreUsuario;
         private String avatarUrl;
     }

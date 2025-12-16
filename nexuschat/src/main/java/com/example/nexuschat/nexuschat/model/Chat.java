@@ -14,27 +14,28 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="chat")
+@Table(name = "chat")
 public class Chat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="nombre", nullable=true)
+    @Column(name = "nombre", nullable = true)
     private String nombre;
-    
+
     @Enumerated(EnumType.STRING)
-    @Column(name="tipo", nullable=false)
+    @Column(name = "tipo", nullable = false)
     private TipoChat tipo;
+
     public enum TipoChat {
         PRIVADO,
         GRUPO
     }
 
-    @Column(name="imagen",nullable=true)
-    private String imagen;
-    @Column(name="creacion")
+    @Column(name = "imagen", nullable = true)
+    private String imagenUrl;
+    @Column(name = "creacion")
     private Instant creacion = Instant.now();
 
 }

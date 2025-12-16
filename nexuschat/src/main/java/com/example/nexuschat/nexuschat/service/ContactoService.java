@@ -31,8 +31,8 @@ public class ContactoService {
                 return contactos.stream()
                                 .map(contacto -> PerfilUsuarioDTO.builder()
                                                 .nombreUsuario(null) // Ocultamos el nombre de usuario real por
-                                                                     // privacidad si es necesario, o lo
-                                                                     // mostramos
+                                                // privacidad si es necesario, o lo
+                                                // mostramos
                                                 .correo(contacto.getCorreo())
                                                 .nombreAppUsuario(contacto.getNombreAppUsuario())
                                                 .avatarUrl(contacto.getAvatarUrl())
@@ -48,11 +48,12 @@ public class ContactoService {
                 Usuario contacto = usuarioRepository.findByCorreo(correoContacto)
                                 .orElseThrow(() -> new RuntimeException("Usuario a agregar no encontrado"));
 
-                if (usuario.getCorreo().equals(contacto.getCorreo())) {
-                        throw new RuntimeException("No puedes agregarte a ti mismo como contacto");
+                if (usuario.getContactos().contains(contacto)) {
+                        throw new RuntimeException("El usuario ya está en tu lista de contactos");
                 }
 
                 usuario.getContactos().add(contacto);
+
                 usuarioRepository.save(usuario);
 
                 return PerfilUsuarioDTO.builder()

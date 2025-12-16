@@ -1,6 +1,5 @@
 package com.example.nexuschat.nexuschat.model;
 
-
 import java.time.Duration;
 
 import jakarta.persistence.Column;
@@ -14,7 +13,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@Table(name="multimedia")
+@Table(name = "multimedia")
 @Entity
 @Data
 public class Multimedia {
@@ -27,19 +26,21 @@ public class Multimedia {
     @JoinColumn(name = "id_chat", nullable = false)
     private Mensaje mensaje;
 
-    @Column(name="url_storage", nullable=false)
+    @Column(name = "url_storage", nullable = false)
     private String url_storage;
 
-    @Column(name="tipo", nullable=false)
+    @Column(name = "tipo", nullable = false)
     private TipoMultimedia tipo;
-    public enum TipoMultimedia{
+
+    public enum TipoMultimedia {
         AUDIO,
         VIDEO,
         FOTO
     };
-    @Column(name="bytes_size", nullable=false)
+
+    @Column(name = "bytes_size", nullable = false)
     private Long bytes_size;
-    @Column(name="duracion", nullable=true)
+    @Column(name = "duracion", nullable = true)
     private Duration duracion;
 
 }
