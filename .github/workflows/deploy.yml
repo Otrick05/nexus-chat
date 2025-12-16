@@ -2,14 +2,14 @@ name: Build and Deploy to Cloud Run
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # O "master"
   pull_request:
     branches: [ "main" ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  REPO_NAME: backend-repositorio
+  REPO_NAME: backend-repositorio # <--- PON AQUÍ EL NOMBRE DE TU ARTIFACT REGISTRY
   IMAGE_NAME: nexus-backend
   SERVICE_NAME: nexus-backend-service
 
@@ -17,6 +17,7 @@ jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ./nexuschat
@@ -32,11 +33,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-          cache-dependency-path: ./nexuschat/pom.xml
+          cache-dependency-path: ./nexuschat/pom.xml # Importante para que el cache funcione en subdirectorio
 
-      # 2. Correr Tests (Opcional, descomentar si se requiere)
-      # - name: Run Tests with Maven
-      #   run: mvn test
+      # 2. Correr Tests Unitarios (CI)
+     # - name: Run Tests with Maven
+     # run: mvn test
 
       # 3. Autenticación con Google Cloud
       - name: Google Auth
@@ -45,38 +46,40 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 4. Configurar Docker
+      # 4. Configurar Docker para Artifact Registry
       - name: Configure Docker
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      # 5. Build y Push
+      # 5. Build y Push de la Imagen Docker
       - name: Build and Push Container
         run: |
+          # mvn clean package ya se ejecuta en el working-directory ./nexuschat
           mvn clean package -DskipTests
           
           IMAGE_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           
+          # Docker build usa el contexto actual (.) que es ./nexuschat gracias al default working-directory
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      # 6. Despliegue a Cloud Run (CD) - VERSIÓN VPC PURA
+      # 6. Despliegue a Cloud Run (CD)
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
           image: ${{ env.IMAGE_TAG }}
-          # NOTA: Eliminamos --add-cloudsql-instances porque usaremos red privada directa
+          # NOTA IMPORTANTE SOBRE RED Y SQL:
+          # Aquí definimos las variables de entorno y la conexión a la BD
           flags: >
             --port=8080
             --allow-unauthenticated
-            --timeout=300
+            --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-p-db
             --vpc-connector=projects/${{ env.PROJECT_ID }}/locations/${{ env.REGION }}/connectors/conector-bd-funservless
             --vpc-egress=private-ranges-only
-          # NOTA: DB_URL simplificada para usar TCP/IP estándar
           env_vars: |
-            DB_URL=jdbc:postgresql://${{ secrets.DB_PRIVATE_IP }}:5432/${{ secrets.DB_NAME }}
+            DB_URL=jdbc:postgresql:///${{ secrets.DB_NAME }}?cloudSqlInstance=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-p-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=${{ secrets.DB_USER }}&password=${{ secrets.DB_PASSWORD }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
