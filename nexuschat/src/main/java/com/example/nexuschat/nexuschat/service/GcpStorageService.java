@@ -26,16 +26,20 @@ public class GcpStorageService implements StorageService {
 
     public GcpStorageService(@Value("${gcp.credentials.location:}") String credentialsLocation) {
         try {
-            if (credentialsLocation != null && !credentialsLocation.isBlank()) {
-                // Local Dev: Cargar desde archivo explícito
+            java.io.File credentialsFile = new java.io.File(credentialsLocation);
+            if (credentialsLocation != null && !credentialsLocation.isBlank() && credentialsFile.exists()) {
+                // Local Dev: Cargar desde archivo explícito solo si existe
+                System.out.println("Cargando credenciales desde archivo: " + credentialsLocation);
                 GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsLocation));
                 this.storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
             } else {
-                // Prod (Cloud Run): Usar ADC (Metadata Server)
+                // Prod (Cloud Run) o si no existe el archivo: Usar ADC (Metadata Server)
+                System.out.println(
+                        "No se encontró archivo de credenciales o no se especificó. Usando Application Default Credentials (ADC).");
                 this.storage = StorageOptions.getDefaultInstance().getService();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error al cargar credenciales de GCP desde: " + credentialsLocation, e);
+            throw new RuntimeException("Error al cargar credenciales de GCP.", e);
         }
     }
 
