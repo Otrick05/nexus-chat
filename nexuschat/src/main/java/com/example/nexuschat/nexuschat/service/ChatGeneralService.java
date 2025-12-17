@@ -327,16 +327,26 @@ public class ChatGeneralService {
             for (ArchivoSolicitudDTO archivoDTO : dto
                     .getArchivos()) {
 
-                // Generar nombre único para el archivo en GCS
-                String uniqueFileName = java.util.UUID.randomUUID().toString() + "_" + archivoDTO.getNombreArchivo();
+                // Generar nombre único para el archivo en GCS SI NO VIENE PRE-FIRMADO
+                String uniqueFileName;
+                String signedUrl = null;
 
-                // Generar URL firmada
-                String signedUrl = storageService.generarUrlFirmada(uniqueFileName, archivoDTO.getContentType());
-                uploadUrls.add(signedUrl);
+                if (archivoDTO.getFileName() != null && !archivoDTO.getFileName().isBlank()) {
+                    // Flujo Nuevo: Archivo ya subido (pre-signed)
+                    uniqueFileName = archivoDTO.getFileName();
+                    // No generamos uploadUrl, el signedUrl es null porque ya se subió
+                } else {
+                    // Flujo Legacy: Generamos URL de subida AHORA
+                    uniqueFileName = java.util.UUID.randomUUID().toString() + "_" + archivoDTO.getNombreArchivo();
+                    signedUrl = storageService.generarUrlFirmada(uniqueFileName, archivoDTO.getContentType());
+                }
+
+                uploadUrls.add(signedUrl); // Puede agregar null, el mapper lo debe manejar (o el front saber que null =
+                                           // ya subido)
 
                 Multimedia media = new Multimedia();
                 media.setMensaje(mensajeGuardado);
-                // Guardamos la URL pública futura (sin firma) o el path relativo
+                // Guardamos el key del storage (nombre del archivo)
                 media.setUrl_storage(uniqueFileName);
 
                 // Determinar tipo de multimedia basado en el mensaje o contentType

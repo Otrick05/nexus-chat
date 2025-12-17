@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.nexuschat.nexuschat.DTO.SignupRequest;
+import com.example.nexuschat.nexuschat.DTO.request.ChangePasswordRequest;
 import com.example.nexuschat.nexuschat.exception.CorreoYaExisteException;
 import com.example.nexuschat.nexuschat.model.Usuario;
 import com.example.nexuschat.nexuschat.repository.RolRepository;
@@ -74,6 +75,18 @@ public class AuthService {
         return authenticateAndGenerateToken(
                 nuevoUsuario.getCorreo(),
                 signupRequest.getPassword());
+    }
+
+    public String changePasswordAndAuthenticate(Usuario usuario,
+            ChangePasswordRequest request) {
+        if (!passwordEncoder.matches(request.getOldPassword(), usuario.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuarioRepository.save(usuario);
+
+        return authenticateAndGenerateToken(usuario.getCorreo(), request.getNewPassword());
     }
 
     public void logout(String token) {

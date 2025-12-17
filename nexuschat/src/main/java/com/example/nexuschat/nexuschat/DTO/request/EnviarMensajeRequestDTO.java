@@ -30,5 +30,6 @@ public class EnviarMensajeRequestDTO {
         private String contentType;
         private Long tamanoBytes;
         private String duracion;
+        private String fileName; // Optional: Used when file is already uploaded via FileController
     }
 }

@@ -28,44 +28,41 @@ public class JwtInterceptor implements ChannelInterceptor {
         this.userDetailsService = userDetailsService;
     }
 
-     @Override
+    @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        
+
         final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             final String authHeader = accessor.getFirstNativeHeader("Authorization");
-            
+
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 final String jwt = authHeader.substring(7);
                 log.debug("JWT extraído de la cabecera para conexión STOMP.");
 
                 try {
-                    
+
                     final String userEmail = jwtService.extractEmail(jwt);
 
-                   
                     final UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                    
-                    
+
                     Authentication authentication = jwtService.getAuthentication(jwt, userDetails);
 
                     if (authentication != null) {
-                        
+
                         accessor.setUser(authentication);
                         log.info("Usuario '{}' autenticado exitosamente para la sesión WebSocket.", userEmail);
                     }
-                    
+
                 } catch (UsernameNotFoundException e) {
 
                     log.warn("Validación de JWT fallida. Rechazando conexión WebSocket. Razón: {}", e.getMessage());
                 }
             } else {
-                 log.warn("Conexión WebSocket anónima. Cabecera 'Authorization' no encontrada o mal formada.");
+                log.warn("Conexión WebSocket anónima. Cabecera 'Authorization' no encontrada o mal formada.");
             }
         }
         return message;
     }
-
 
 }

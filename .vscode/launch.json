@@ -5,7 +5,10 @@
             "name": "NexusChatApplication",
             "request": "launch",
             "mainClass": "com.example.nexuschat.nexuschat.NexusChatApplication",
-            "projectName": "nexuschat"
+            "projectName": "nexuschat",
+            "env": {
+                "GOOGLE_APPLICATION_CREDENTIALS": "C:/Users/odrit/Desktop/computo-en-la-nube-is503-db20b41710c6.json"
+            }
         },
         {
             "type": "java",

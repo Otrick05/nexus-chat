@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.nexuschat.nexuschat.DTO.LoginRequest;
 import com.example.nexuschat.nexuschat.DTO.SignupRequest;
+import com.example.nexuschat.nexuschat.DTO.request.ChangePasswordRequest;
+import com.example.nexuschat.nexuschat.model.Usuario;
 import com.example.nexuschat.nexuschat.security.AuthService;
 
 @RestController
@@ -61,6 +65,18 @@ public class AuthController {
 
         }
         return ResponseEntity.badRequest().body("Token invalido");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/changepassword")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestBody ChangePasswordRequest request) {
+
+        String token = authService.changePasswordAndAuthenticate(usuario, request);
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        return ResponseEntity.ok(response);
     }
 
 }

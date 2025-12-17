@@ -23,7 +23,7 @@ public class Multimedia {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_chat", nullable = false)
+    @JoinColumn(name = "id_mensaje", nullable = false)
     private Mensaje mensaje;
 
     @Column(name = "url_storage", nullable = false)

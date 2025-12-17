@@ -82,6 +82,8 @@ public class RealtimeChatService {
                 lightMessage);
 
         for (String email : destinatarios) {
+            log.info("Enviando notificación privada a user '{}', path '/queue/notificaciones'. Payload: {}", email,
+                    evento);
             messagingTemplate.convertAndSendToUser(email, "/queue/notificaciones", evento);
         }
     }
@@ -128,6 +130,8 @@ public class RealtimeChatService {
                 chatDTO);
 
         // Destino final: /user/{correoDestino}/queue/notificaciones
+        log.info("Notificando NUEVO CHAT a user '{}', path '/queue/notificaciones'. Payload: {}", correoDestino,
+                evento);
         messagingTemplate.convertAndSendToUser(correoDestino, "/queue/notificaciones", evento);
     }
 
