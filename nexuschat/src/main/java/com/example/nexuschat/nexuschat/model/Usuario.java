@@ -75,7 +75,7 @@ public class Usuario implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         rol.getPermisos().forEach(permiso -> authorities.add(new SimpleGrantedAuthority(permiso.getNombre())));
-
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + rol.getNombre()));
         return authorities;
     }
 

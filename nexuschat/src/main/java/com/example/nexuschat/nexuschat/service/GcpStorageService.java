@@ -66,8 +66,7 @@ public class GcpStorageService implements StorageService {
             BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
 
             URL url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES,
-                    Storage.SignUrlOption.httpMethod(HttpMethod.GET),
-                    Storage.SignUrlOption.withV4Signature());
+                    Storage.SignUrlOption.httpMethod(HttpMethod.GET));
 
             return url.toString();
         } catch (Exception e) {

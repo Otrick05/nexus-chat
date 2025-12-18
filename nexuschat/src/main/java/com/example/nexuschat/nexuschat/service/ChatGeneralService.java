@@ -28,11 +28,13 @@ import com.example.nexuschat.nexuschat.repository.MensajeRepository;
 import com.example.nexuschat.nexuschat.repository.MultimediaRepository;
 import com.example.nexuschat.nexuschat.repository.ParticipanteChatRepository;
 import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 @Service
+@Slf4j
 public class ChatGeneralService {
 
     private final ChatRepository chatRepository;
@@ -309,6 +311,9 @@ public class ChatGeneralService {
         }
 
         // 2. Mapeo Manual (DTO -> Entidad Mensaje)
+        log.info("Procesando mensaje. DTO recibido: {}", dto);
+        System.out.println("DTO Archivos size: " + (dto.getArchivos() != null ? dto.getArchivos().size() : "null"));
+
         Mensaje nuevoMensaje = new Mensaje();
         nuevoMensaje.setChat(chat);
         nuevoMensaje.setRemitente(remitente);
@@ -324,6 +329,7 @@ public class ChatGeneralService {
         List<String> uploadUrls = new ArrayList<>(); // Para guardar las URLs firmadas temporalmente
 
         if (dto.getArchivos() != null && !dto.getArchivos().isEmpty()) {
+            log.info("Procesando {} archivos adjuntos.", dto.getArchivos().size());
             for (ArchivoSolicitudDTO archivoDTO : dto
                     .getArchivos()) {
 
@@ -373,9 +379,18 @@ public class ChatGeneralService {
             }
         }
 
+        // 3.5 Generar URLs firmadas de LECTURA para que el front pueda mostrar el
+        // archivo inmediatamente
+        List<String> readUrls = new ArrayList<>();
+        for (Multimedia media : multimediaGuardada) {
+            String readUrl = storageService.generarUrlFirmadaLectura(media.getUrl_storage());
+            readUrls.add(readUrl);
+        }
+
         // 4. Mapeo Manual (Entidad -> DTO de Respuesta)
-        // Pasamos las uploadUrls al mapper para que las incluya en la respuesta
-        MensajeResponseDTO responseDTO = mapToMensajeResponseDTO(mensajeGuardado, multimediaGuardada, uploadUrls);
+        // Pasamos las uploadUrls y readUrls al mapper
+        MensajeResponseDTO responseDTO = mapToMensajeResponseDTO(mensajeGuardado, multimediaGuardada, uploadUrls,
+                readUrls);
 
         // 5. Difundir a todos los miembros del chat
         // Obtener lista de emails de participantes activos
@@ -435,32 +450,10 @@ public class ChatGeneralService {
                 downloadUrls.add(signedUrl);
             }
 
-            // Pasamos las URLs de descarga al mapper.
-            // NOTA: Reutilizamos el parámetro 'uploadUrls' del mapper para pasar las
-            // 'downloadUrls'
-            // ya que en el contexto de lectura, lo que queremos mostrar en 'urlStorage' o
-            // un campo similar es la URL accesible.
-            // Sin embargo, el mapper actual asigna 'uploadUrls' a 'uploadUrl' (para PUT).
-            // Para lectura (GET), deberíamos asignar esta URL firmada a 'urlStorage' del
-            // DTO o a un nuevo campo 'downloadUrl'.
-            // Dado que el frontend probablemente usa 'urlStorage' para visualizar, vamos a
-            // sobreescribir ese campo en el DTO
-            // o modificar el mapper para que acepte 'downloadUrls'.
+            // Pasamos las URLs de descarga al mapper como readUrls
+            MensajeResponseDTO responseDTO = mapToMensajeResponseDTO(mensaje, multimedia, null, downloadUrls);
 
-            // Modificaremos el mapper para aceptar 'downloadUrls' explícitamente o
-            // manejaremos la lógica aquí.
-            // Para no romper el mapper existente, lo llamamos con null en uploadUrls y
-            // luego actualizamos los DTOs.
-
-            MensajeResponseDTO responseDTO = mapToMensajeResponseDTO(mensaje, multimedia, null);
-
-            // Actualizar urlStorage con la URL firmada de lectura
-            List<MensajeResponseDTO.MultimediaResponseDTO> mediaDTOs = responseDTO.getMultimedia();
-            for (int i = 0; i < mediaDTOs.size(); i++) {
-                if (i < downloadUrls.size()) {
-                    mediaDTOs.get(i).setUrlStorage(downloadUrls.get(i));
-                }
-            }
+            log.info("Chat: {} | MsgID: {} | URLs: {}", idChat, responseDTO.getId(), downloadUrls);
 
             return responseDTO;
         });
@@ -767,7 +760,7 @@ public class ChatGeneralService {
     }
 
     private MensajeResponseDTO mapToMensajeResponseDTO(Mensaje mensaje, List<Multimedia> multimedia,
-            List<String> uploadUrls) {
+            List<String> uploadUrls, List<String> readUrls) {
         MensajeResponseDTO.RemitenteDTO remitenteDTO = new MensajeResponseDTO.RemitenteDTO();
         remitenteDTO.setId(mensaje.getRemitente().getId());
         remitenteDTO.setCorreo(mensaje.getRemitente().getCorreo());
@@ -782,7 +775,15 @@ public class ChatGeneralService {
             Multimedia m = multimedia.get(i);
             MensajeResponseDTO.MultimediaResponseDTO mdto = new MensajeResponseDTO.MultimediaResponseDTO();
             mdto.setId(m.getId());
-            mdto.setUrlStorage(m.getUrl_storage());
+
+            // Si pasamos readUrls (URLs firmadas de lectura), las usamos. Si no, usamos el
+            // fallback (nombre archivo)
+            if (readUrls != null && i < readUrls.size()) {
+                mdto.setUrlStorage(readUrls.get(i));
+            } else {
+                mdto.setUrlStorage(m.getUrl_storage());
+            }
+
             mdto.setTipo(m.getTipo().name());
             mdto.setTamañoBytes(m.getBytes_size());
             mdto.setDuracion(m.getDuracion() != null ? m.getDuracion().toString() : null);

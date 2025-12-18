@@ -43,7 +43,7 @@ public class FileController {
                     .contentType(file.getContentType())
                     .build());
         }
-
+        System.out.println(response);
         return ResponseEntity.ok(response);
     }
 }

@@ -71,4 +71,13 @@ public class UsuarioService {
             usuarioRepository.save(usuario);
         });
     }
+
+    public void actualizarNombreAppUsuario(String correo, String nuevoNombre) {
+        System.out.println("Actualizando nombre en DB para correo: " + correo);
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        usuario.setNombreAppUsuario(nuevoNombre);
+        usuarioRepository.save(usuario);
+        System.out.println("Nombre actualizado exitosamente.");
+    }
 }
