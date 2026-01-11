@@ -76,7 +76,8 @@ jobs:
             --port=8080
             --allow-unauthenticated
             --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-db
-            --vpc-connector=projects/${{ env.PROJECT_ID }}/locations/${{ env.REGION }}/connectors/conector-bd-funservless
+            --network=default
+            --subnet=default
             --vpc-egress=private-ranges-only
           env_vars: |
             DB_URL=jdbc:postgresql:///${{ secrets.DB_NAME }}?cloudSqlInstance=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=${{ secrets.DB_USER }}&password=${{ secrets.DB_PASSWORD }}
