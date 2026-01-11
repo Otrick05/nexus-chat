@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  REPO_NAME: backend-repositorio # <--- PON AQUÍ EL NOMBRE DE TU ARTIFACT REGISTRY
+  REPO_NAME: backend-repositorio
   IMAGE_NAME: nexus-backend
   SERVICE_NAME: nexus-backend-service
 
@@ -75,11 +75,11 @@ jobs:
           flags: >
             --port=8080
             --allow-unauthenticated
-            --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-p-db
+            --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-db
             --vpc-connector=projects/${{ env.PROJECT_ID }}/locations/${{ env.REGION }}/connectors/conector-bd-funservless
             --vpc-egress=private-ranges-only
           env_vars: |
-            DB_URL=jdbc:postgresql:///${{ secrets.DB_NAME }}?cloudSqlInstance=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-p-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=${{ secrets.DB_USER }}&password=${{ secrets.DB_PASSWORD }}
+            DB_URL=jdbc:postgresql:///${{ secrets.DB_NAME }}?cloudSqlInstance=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=${{ secrets.DB_USER }}&password=${{ secrets.DB_PASSWORD }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
