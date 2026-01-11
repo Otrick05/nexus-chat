@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  REPO_NAME: backend-repositorio
+  REPO_NAME: nexus-backend-service
   IMAGE_NAME: nexus-backend
   SERVICE_NAME: nexus-backend-service
 
