@@ -32,7 +32,7 @@ public class FileController {
         List<FileSignedUrlResponseDTO> response = new ArrayList<>();
 
         for (FileSignatureRequestDTO file : files) {
-            // Generate unique filename: uuid_originalName
+            // Generate unique filename: uuid + originalName
             String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getFileName();
 
             String signedUrl = storageService.generarUrlFirmada(uniqueFileName, file.getContentType());

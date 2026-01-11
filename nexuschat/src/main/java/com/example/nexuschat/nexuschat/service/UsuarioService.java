@@ -7,6 +7,7 @@ package com.example.nexuschat.nexuschat.service;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.example.nexuschat.nexuschat.model.Usuario;
@@ -16,6 +17,9 @@ import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+
+    @Value("${jwt.expiration-time}")
+    private long jwtExpiration;
 
     public UsuarioService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
@@ -45,14 +49,7 @@ public class UsuarioService {
 
                     // Validar TTL de 15 minutos (por ejemplo)
                     java.time.Instant now = java.time.Instant.now();
-                    java.time.Instant expirationTime = usuario.getLastLogin().plusSeconds(15 * 60); // 15 min TTL logic
-                                                                                                    // if desired
-
-                    // Si el usuario dijo que el token tiene TTL de 15 min y queremos validar que la
-                    // sesión
-                    // siga "viva" respecto al lastLogin...
-                    // Pero la solicitud dice: "usar last login para checar ttl que es de 15
-                    // minutos"
+                    java.time.Instant expirationTime = usuario.getLastLogin().plusMillis(jwtExpiration);
 
                     if (now.isAfter(expirationTime)) {
                         return false; // Sesión expirada por tiempo

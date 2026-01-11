@@ -33,6 +33,9 @@ public class JwtService {
     @Value("${jwt.secret-key}")
     private String secretKey;
 
+    @Value("${jwt.expiration-time}")
+    private long jwtExpiration;
+
     private SecretKey getSigningKey() {
 
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
@@ -60,8 +63,9 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setId(java.util.UUID.randomUUID().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // en esta linea se setea el
-                                                                                      // tiempo de expiración del jwt
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)) // en esta linea se setea el
+                                                                                     // tiempo de expiración del jwt en
+                                                                                     // milisegundos
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
