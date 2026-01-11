@@ -79,6 +79,7 @@ jobs:
             --network=default
             --subnet=default
             --vpc-egress=private-ranges-only
+            --clear-vpc-connector
           env_vars: |
             DB_URL=jdbc:postgresql:///${{ secrets.DB_NAME }}?cloudSqlInstance=${{ env.PROJECT_ID }}:${{ env.REGION }}:nexus-chat-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=${{ secrets.DB_USER }}&password=${{ secrets.DB_PASSWORD }}
             DB_USER=${{ secrets.DB_USER }}
