@@ -1,31 +1,12 @@
 package com.example.nexuschat.nexuschat.service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
-
-import com.example.nexuschat.nexuschat.DTO.request.ChatMessageDTO;
 import com.example.nexuschat.nexuschat.DTO.response.ChatEventDTO;
 import com.example.nexuschat.nexuschat.DTO.response.ChatListResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseWBDTO;
-import com.example.nexuschat.nexuschat.model.Chat;
-import com.example.nexuschat.nexuschat.model.Mensaje;
-import com.example.nexuschat.nexuschat.model.Multimedia;
-import com.example.nexuschat.nexuschat.model.ParticipanteChat;
-import com.example.nexuschat.nexuschat.model.Usuario;
-import com.example.nexuschat.nexuschat.repository.ChatRepository;
-import com.example.nexuschat.nexuschat.repository.MensajeEstadoUsuarioRepository;
-import com.example.nexuschat.nexuschat.repository.MensajeRepository;
-import com.example.nexuschat.nexuschat.repository.MultimediaRepository;
-import com.example.nexuschat.nexuschat.repository.ParticipanteChatRepository;
-import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
-
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;

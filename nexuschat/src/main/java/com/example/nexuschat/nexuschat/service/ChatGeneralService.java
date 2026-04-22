@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import com.example.nexuschat.nexuschat.DTO.request.EnviarMensajeRequestDTO.Archi
 import com.example.nexuschat.nexuschat.DTO.response.ChatListResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseDTO;
 import com.example.nexuschat.nexuschat.DTO.response.MensajeResponseWBDTO;
-import com.example.nexuschat.nexuschat.DTO.response.MensajeResumenDTO; // Keep despite warning if needed by other parts, or remove if truly unused. I'll include it to be safe, or remove if I want to be clean. I'll remove it as per lint.
 import com.example.nexuschat.nexuschat.DTO.response.PerfilUsuarioDTO;
 import com.example.nexuschat.nexuschat.model.Chat;
 import com.example.nexuschat.nexuschat.model.Mensaje;
@@ -29,7 +27,6 @@ import com.example.nexuschat.nexuschat.repository.MultimediaRepository;
 import com.example.nexuschat.nexuschat.repository.ParticipanteChatRepository;
 import com.example.nexuschat.nexuschat.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
@@ -746,13 +743,6 @@ public class ChatGeneralService {
         }
 
         dto.setRemitenteCorreo(mensaje.getRemitente().getCorreo());
-        // dto.setNombreRemitente(mensaje.getRemitente().getNombreUsuario());
-        // Nota: MensajeResumenDTO interno no tiene nombreRemitente en algunas
-        // versiones,
-        // pero el usuario lo agregó en Step 326?
-        // Step 326: public static class MensajeResumenDTO { ... private String
-        // nombreRemitente; ... }
-        // Así que sí lo tiene.
         dto.setNombreRemitente(mensaje.getRemitente().getNombreUsuario());
         dto.setHora(mensaje.getHora());
         dto.setBorradoParaTodos(mensaje.getBorradoTodos());
