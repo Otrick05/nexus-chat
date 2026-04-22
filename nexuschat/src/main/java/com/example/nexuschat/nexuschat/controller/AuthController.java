@@ -31,14 +31,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
 
-        System.out.println(loginRequest.getCorreo());
-        System.out.println(loginRequest.getPassword());
         String token = authService
                 .authenticateAndGenerateToken(
                         loginRequest.getCorreo(),
                         loginRequest.getPassword());
-
-        System.out.println(token);
 
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
